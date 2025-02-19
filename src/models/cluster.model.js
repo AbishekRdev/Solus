@@ -1,10 +1,29 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
+const clusterSchema = new Schema(
+  {
 
+    name: {
+      type: String,
+      required: true,
+    },
+    ownedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    posts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
+    clusterType: {
+      enum: ["private,public"],
+      default: "public",
+    },
 
+    
+  },{ timestamps: true });
 
-const clusterSchema=new Schema({},{timestamps:true});
-
-
-export const Cluster=mongoose.model("Cluster",clusterSchema);
-
+export const Cluster = mongoose.model("Cluster", clusterSchema);
