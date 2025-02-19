@@ -8,7 +8,7 @@ class ApiError extends Error {
     super(message);
     this.status = statusCode;
     this.data = null;
-    this.messafe;
+    this.message = message;
     this.success = flase;
     this.errors = errors;
 
