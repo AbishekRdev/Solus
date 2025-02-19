@@ -22,10 +22,10 @@ const postSchema = new Schema(
       },
     ],
     tags: [
-      { type: String }, // User-defined tags
+      { type: String },     // User-defined tags
     ],
     aiMetadata: [
-      { type: String }, // AI-generated categories
+      { type: String },   // AI-generated categories
     ],
   },
   { timestamps: true }
