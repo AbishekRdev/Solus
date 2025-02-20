@@ -5,14 +5,17 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = wrapAsync(async (req, res) => {
-  const { fullName, username, password, refreshToken, email } = req.body;
+  const { fullname, username, password, email } = req.body;
 
   //validation
   if (
-    [fullName, username, refreshToken].some((field) => field?.trim() === "")
+    [fullname, username, password, email].some((field) => field?.trim() === "")
   ) {
+    // fs.unlinkSync(req.files?.avatar[0]?.path);
     throw new ApiError(400, "All Fields Are required");
+    
   }
+
   const existingUser = await User.findOne({
     $or: [{ username }, { email }],
   });
@@ -21,7 +24,6 @@ const registerUser = wrapAsync(async (req, res) => {
   }
 
   const avatarLocalPath = req.files?.avatar[0]?.path;
- 
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
@@ -33,7 +35,7 @@ const registerUser = wrapAsync(async (req, res) => {
   }
 
   const user = await User.create({
-    fullName,
+    fullname,
     email,
     username: username.toLowerCase(),
     password,
@@ -46,7 +48,9 @@ const registerUser = wrapAsync(async (req, res) => {
     throw new ApiError(500, "Something went wrong while registering the user");
   }
 
-  return res.status(201).json(new ApiResponse(200, createdUser,"User registered successfully"));
+  return res
+    .status(201)
+    .json(new ApiResponse(200, createdUser, "User registered successfully"));
 });
 
 export { registerUser };
