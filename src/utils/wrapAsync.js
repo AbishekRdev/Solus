@@ -5,3 +5,5 @@ const wrapAsync = (fn) => async (req, res, next) => {
     next(err);
   }
 };
+
+export default wrapAsync;
