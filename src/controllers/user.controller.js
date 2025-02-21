@@ -129,15 +129,15 @@ const logOutUser = wrapAsync(async (req, res) => {
 });
 
 const refreshAccessToken = wrapAsync(async (req, res) => {
-  const incommingRefreshToken =
-    req.cookie.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
 
-  if (!incommingRefreshToken) {
+  if (!incomingRefreshToken) {
     throw new ApiError(401, "unauthorized request");
   }
   try {
     const decodedToken = jwt.verify(
-      incommingRefreshToken,
+      incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
     const user = await User.findById(decodedToken?._id);
@@ -145,15 +145,20 @@ const refreshAccessToken = wrapAsync(async (req, res) => {
       throw new ApiError(401, "invalid refresh token");
     }
 
-    if (!incommingRefreshToken === user?.refreshToken) {
+    if (!incomingRefreshToken === user?.refreshToken) {
       throw new ApiError(401, "refresh token is expired or used ");
     }
     const { accessToken, newRefreshToken } =
       await generateAccessTokenAndRefreshToken(user._id);
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
     return res
       .status(200)
-      .cookies("accessToken", accessToken, options)
-      .cookies("RefreshToken", newRefreshToken, options)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
       .json(
         new ApiResponse(
           200,
