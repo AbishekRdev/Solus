@@ -71,7 +71,6 @@ const registerUser = wrapAsync(async (req, res) => {
 
 const logInUser = wrapAsync(async (req, res) => {
   const { username, email, password } = req.body;
-  console.log("username", username);
   if (!(username || email)) {
     throw new ApiError(400, "Username or Email is Required");
   }
@@ -111,9 +110,12 @@ const logInUser = wrapAsync(async (req, res) => {
 });
 
 const logOutUser = wrapAsync(async (req, res) => {
+  if(!req.cookies){
+    throw new ApiError(400,"user already logged out ");
+  }
   await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { refreshToken: undefined } },
+    { $unset: { refreshToken: 1 } },
     { new: true }
   );
   const options = {
@@ -121,10 +123,10 @@ const logOutUser = wrapAsync(async (req, res) => {
     secure: true,
   };
 
-  return res
+   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .cookie("refreshToken", options)
+    .clearCookie("accessToken", options) 
+    .clearCookie("refreshToken", options) 
     .json(new ApiResponse(200, {}, "User Logged Out"));
 });
 
@@ -171,4 +173,85 @@ const refreshAccessToken = wrapAsync(async (req, res) => {
   }
 });
 
-export { registerUser, logInUser, logOutUser, refreshAccessToken };
+const getCurrentUser = wrapAsync(async (req, res) => {
+ return  res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "current user fetched successfully"));
+});
+
+
+
+const changeCurrentPassword = wrapAsync(async (req, res) => {
+  console.log(req.body);
+  const { currentPassword, newPassword } = req.body;
+  if (!(currentPassword && newPassword)) {
+    throw new ApiError(400, " both fields  are required  ");
+  }
+  const user = await User.findById(req.user._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(newPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "inavlid old Passowrd");
+  }
+
+  user.password = newPassword;
+ await user.save({ validateBeforeSave: false });
+
+  return res.status(200).json(new ApiResponse(400,"Passsword changed successfully"));
+});
+
+const updateAvatar = wrapAsync(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file missing");
+  }
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  if (!avatar) {
+    throw new ApiError(400, "Error while updating Avatar");
+  }
+  console.log(avatar);
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: { avatar: avatar.url },
+    },
+    { new: true }
+  ).select("-password");
+
+ return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar Updated sucessfully"));
+});
+
+const changeFullname = wrapAsync(async (req, res) => {
+  const { fullname } = req.body;
+  if (!fullname) {
+    throw new ApiError(400, "fullname is required");
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        fullname,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+ return  res
+  .status(200)
+  .json(new ApiResponse(200, user,"Fullname Updated successfully"));
+});
+
+
+export {
+  registerUser,
+  logInUser,
+  logOutUser,
+  refreshAccessToken,
+  getCurrentUser,
+  changeCurrentPassword,
+  changeFullname,
+  updateAvatar,
+};

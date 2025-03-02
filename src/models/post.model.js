@@ -7,7 +7,14 @@ const postSchema = new Schema(
     },
     content: {
       type: String,
-      required: true,
+      required: [true, 'Content is required if image is not provided.'],
+      validate: {
+        validator: function(value) {
+          
+          return this.img || !value; 
+        },
+        message: 'Image must be provided if content is not given.',
+      },
     },
     likedBy: [
       {
@@ -15,22 +22,21 @@ const postSchema = new Schema(
         ref: "User",
       },
     ],
-    tags: [
-      {
-        type: String,
-        unique: true,
-      },
-    ],
+    likesCount:{
+      type:Number,
+      default:0,
+
+    },
     tags: [
       { type: String },     // User-defined tags
     ],
-    aiMetadata: [
+    concepts: [
       { type: String },   // AI-generated categories
     ],
   },
   { timestamps: true }
 );
-postSchema.pre("save");
+
 
 postSchema.methods.toggleLike = async function (userId) {
   if (this.likedBy.includes(userId)) {

@@ -36,15 +36,29 @@ const userSchema = new Schema(
       },
     ],
     avatar: {
-      //from cloudinary;
       type: String,
       required: true,
     },
+
     userType: {
       type: String,
       enum: ["user", "admin", "moderator"],
       default: "user",
     },
+    following: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    followers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    followersCount: [
+      {
+       type:Number,
+       default:0,
+      }
+    ],
+    followingCount: [
+      {
+       type:Number,
+       default:0,
+      }
+    ],
     posts: [
       {
         type: Schema.Types.ObjectId,
@@ -87,10 +101,10 @@ userSchema.methods.generateAccessToken = function () {
 };
 
 
-userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign(
+userSchema.methods.generateRefreshToken =  function () {
+  return  jwt.sign(
     {
-      _id: this.id,
+      _id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
