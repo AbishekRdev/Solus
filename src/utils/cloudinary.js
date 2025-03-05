@@ -1,3 +1,4 @@
+
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -13,10 +14,11 @@ const uploadOnCloudinary = async (localFilepath) => {
     const response = await cloudinary.uploader.upload(localFilepath, {
       resource_type:"auto",
     });
+    
     fs.unlinkSync(localFilepath);
     return response;
   } catch (error) {
-    fs.unlinkSync(localFilepath); //removes the locally saved file as the upload operation has failed
+    fs.unlinkSync(localFilepath); 
     return null;
   }
 };

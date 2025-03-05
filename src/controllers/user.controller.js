@@ -179,10 +179,7 @@ const getCurrentUser = wrapAsync(async (req, res) => {
     .json(new ApiResponse(200, req.user, "current user fetched successfully"));
 });
 
-
-
 const changeCurrentPassword = wrapAsync(async (req, res) => {
-  console.log(req.body);
   const { currentPassword, newPassword } = req.body;
   if (!(currentPassword && newPassword)) {
     throw new ApiError(400, " both fields  are required  ");
@@ -209,7 +206,7 @@ const updateAvatar = wrapAsync(async (req, res) => {
   if (!avatar) {
     throw new ApiError(400, "Error while updating Avatar");
   }
-  console.log(avatar);
+  
 
   const user = await User.findByIdAndUpdate(
     req.user._id,

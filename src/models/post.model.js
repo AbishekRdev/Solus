@@ -1,20 +1,16 @@
 import mongoose, { Schema } from "mongoose";
+import { analyzeImage } from "../utils/clarifai.js";
 
 const postSchema = new Schema(
   {
-    img: {
-      type: String, //cloudinary
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true, 
     },
-    content: {
-      type: String,
-      required: [true, 'Content is required if image is not provided.'],
-      validate: {
-        validator: function(value) {
-          
-          return this.img || !value; 
-        },
-        message: 'Image must be provided if content is not given.',
-      },
+    img: {
+      type: String, 
+      required: true
     },
     likedBy: [
       {
@@ -22,21 +18,44 @@ const postSchema = new Schema(
         ref: "User",
       },
     ],
-    likesCount:{
-      type:Number,
-      default:0,
-
+    likesCount: {
+      type: Number,
+      default: 0,
     },
     tags: [
-      { type: String },     // User-defined tags
+      { type: String },
     ],
     concepts: [
-      { type: String },   // AI-generated categories
+      {
+        name: {
+          type: String,
+          required: true, 
+        },
+        value: {
+          type: Number,
+          required: true,
+        }
+      }
+    ],
+    colors: [
+      {
+        name: {
+          type: String,
+          required: true, 
+        },
+        hex: {
+          type: String,
+          required: true, 
+        },
+        confidence: {
+          type: Number,
+          required: true, 
+        }
+      }
     ],
   },
   { timestamps: true }
 );
-
 
 postSchema.methods.toggleLike = async function (userId) {
   if (this.likedBy.includes(userId)) {
@@ -50,5 +69,11 @@ postSchema.methods.toggleLike = async function (userId) {
   }
   await this.save();
 };
+postSchema.pre("save", async function (next) {
+  const analyzeImageData=await analyzeImage(this.img)
+  this.concepts=await analyzeImageData.concepts;
+  this.colors= await analyzeImageData.colors ;
+  next();
+});
 
 export const Post = mongoose.model("Post", postSchema);
