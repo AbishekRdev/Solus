@@ -3,7 +3,7 @@ import { Post } from "../models/post.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import wrapAsync from "../utils/wrapAsync.js";
-import { analyzeImage } from "../utils/clarifai.js";
+
 
 
 
