@@ -8,6 +8,8 @@ import {
   refreshAccessToken,
   registerUser,
   updateAvatar,
+  checkUserEmail,
+  checkUserUsername,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -86,5 +88,19 @@ upload.single("avatar"),
 updateAvatar,
 
 );
+
+router.post(
+  "/check-email",
+  checkUserEmail,
+
+)
+
+router.post(
+  "/check-username",
+  checkUserUsername,
+
+)
+
+
 
 export default router;

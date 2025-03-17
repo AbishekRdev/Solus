@@ -23,6 +23,7 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 
 const registerUser = wrapAsync(async (req, res) => {
   const { fullname, username, password, email } = req.body;
+  console.log(req.body);
 
   //validation
   if (
@@ -39,23 +40,23 @@ const registerUser = wrapAsync(async (req, res) => {
     throw new ApiError(409, "User with username or email already exist");
   }
 
-  const avatarLocalPath = req.files?.avatar[0]?.path;
+  // const avatarLocalPath = req.files?.avatar[0]?.path;
 
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar file is required");
-  }
+  // if (!avatarLocalPath) {
+  //   throw new ApiError(400, "Avatar file is required");
+  // }
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if (!avatar) {
-    throw new ApiError(400, "Avatar file is required");
-  }
-
+  // const avatar = await uploadOnCloudinary(avatarLocalPath);
+  // if (!avatar) {
+  //   throw new ApiError(400, "Avatar file is required");
+  // }
+  console.log("--------------------passsed-------------");
   const user = await User.create({
     fullname,
     email,
     username: username.toLowerCase(),
     password,
-    avatar: avatar.url,
+    // avatar: avatar.url,
   });
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -110,8 +111,8 @@ const logInUser = wrapAsync(async (req, res) => {
 });
 
 const logOutUser = wrapAsync(async (req, res) => {
-  if(!req.cookies){
-    throw new ApiError(400,"user already logged out ");
+  if (!req.cookies) {
+    throw new ApiError(400, "user already logged out ");
   }
   await User.findByIdAndUpdate(
     req.user._id,
@@ -123,10 +124,10 @@ const logOutUser = wrapAsync(async (req, res) => {
     secure: true,
   };
 
-   return res
+  return res
     .status(200)
-    .clearCookie("accessToken", options) 
-    .clearCookie("refreshToken", options) 
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User Logged Out"));
 });
 
@@ -174,7 +175,7 @@ const refreshAccessToken = wrapAsync(async (req, res) => {
 });
 
 const getCurrentUser = wrapAsync(async (req, res) => {
- return  res
+  return res
     .status(200)
     .json(new ApiResponse(200, req.user, "current user fetched successfully"));
 });
@@ -191,9 +192,11 @@ const changeCurrentPassword = wrapAsync(async (req, res) => {
   }
 
   user.password = newPassword;
- await user.save({ validateBeforeSave: false });
+  await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(new ApiResponse(400,"Passsword changed successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(400, "Passsword changed successfully"));
 });
 
 const updateAvatar = wrapAsync(async (req, res) => {
@@ -206,7 +209,6 @@ const updateAvatar = wrapAsync(async (req, res) => {
   if (!avatar) {
     throw new ApiError(400, "Error while updating Avatar");
   }
-  
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -216,7 +218,7 @@ const updateAvatar = wrapAsync(async (req, res) => {
     { new: true }
   ).select("-password");
 
- return res
+  return res
     .status(200)
     .json(new ApiResponse(200, user, "Avatar Updated sucessfully"));
 });
@@ -236,11 +238,47 @@ const changeFullname = wrapAsync(async (req, res) => {
     { new: true }
   ).select("-password");
 
- return  res
-  .status(200)
-  .json(new ApiResponse(200, user,"Fullname Updated successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Fullname Updated successfully"));
 });
 
+const checkUserEmail = wrapAsync(async (req, res) => {
+  const { email } = req.body;
+  console.log(req.body);
+  if (!email) {
+    throw new ApiError(400, "Field is  empty ");
+  }
+  const isEmailChecked = await User.findOne({ email: email });
+  if (isEmailChecked) {
+    throw new ApiError(400, "Email Check failed email already exist");
+  }
+
+  res
+  .status(200)
+  .json(new ApiResponse(200, "Email check passed"));
+});
+
+const checkUserUsername = wrapAsync(async (req, res) => {
+  const { username } = req.body;
+  console.log(req.body);
+  if (!username) {
+    throw new ApiError(400, "Field is empty ");
+  }
+  if(username.length < 4){
+    throw new ApiError(400,"username should be minimum 4 chracters long");
+  }
+
+
+  const isUsernameChecked = await User.findOne({ username: username });
+  if (isUsernameChecked) {
+    throw new ApiError(400, "Username check failed Username already exist");
+  }
+
+  res
+  .status(200)
+  .json(new ApiResponse(200, "username check passed "));
+});
 
 export {
   registerUser,
@@ -251,4 +289,6 @@ export {
   changeCurrentPassword,
   changeFullname,
   updateAvatar,
+  checkUserEmail,
+  checkUserUsername,
 };
