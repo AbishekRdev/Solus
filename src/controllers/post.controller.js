@@ -3,6 +3,7 @@ import { Post } from "../models/post.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import wrapAsync from "../utils/wrapAsync.js";
+import { Query } from "mongoose";
 
 
 
@@ -51,13 +52,22 @@ const newPost = wrapAsync(async (req, res) => {
 
 
 const getAllPost = wrapAsync(async (req, res) => {
-  const allPost = await Post.find({});
-  if(!allPost){
+  const {page,limit}=req.query;
+  const Page=Number(page) || 1;
+  const Limit=Number(limit) || 10;
+  const Skip=(Page-1)*Limit;
+  
+  const posts = await Post
+  .find({})
+  .skip(Skip)
+  .limit(Limit);
+
+  if(!posts){
     throw new ApiError(404,"Posts not found ");
   }
   res
     .status(200)
-    .json(new ApiResponse(200, allPost, "all posts fetched successfully"));
+    .json(new ApiResponse(200, posts, "all posts fetched successfully"));
 });
 
 
