@@ -69,11 +69,18 @@ postSchema.methods.toggleLike = async function (userId) {
   }
   await this.save();
 };
-postSchema.pre("save", async function (next) {
-  const analyzeImageData=await analyzeImage(this.img)
-  this.concepts=await analyzeImageData.concepts;
-  this.colors= await analyzeImageData.colors ;
-  next();
-});
+
+
+// postSchema.pre("save", async function (next) {
+//   const analyzeImageData=await analyzeImage(this.img)
+//   this.concepts=await analyzeImageData.concepts;
+//   this.colors= await analyzeImageData.colors ;
+//   next();
+// });
+
+
+
+
+
 
 export const Post = mongoose.model("Post", postSchema);
