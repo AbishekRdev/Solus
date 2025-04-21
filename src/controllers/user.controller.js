@@ -186,7 +186,7 @@ const changeCurrentPassword = wrapAsync(async (req, res) => {
     throw new ApiError(400, " both fields  are required  ");
   }
   const user = await User.findById(req.user._id);
-  const isPasswordCorrect = await user.isPasswordCorrect(newPassword);
+  const isPasswordCorrect = await user.isPasswordCorrect(currentPassword);
   if (!isPasswordCorrect) {
     throw new ApiError(400, "inavlid old Passowrd");
   }

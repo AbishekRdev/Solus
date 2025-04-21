@@ -3,6 +3,7 @@ import { Post } from "../models/post.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import wrapAsync from "../utils/wrapAsync.js";
+import ensureJpgExtension from "../utils/ensureJpgExtension.js";
 import { Query } from "mongoose";
 
 
@@ -27,10 +28,10 @@ const newPost = wrapAsync(async (req, res) => {
   if (!img) {
     throw new ApiError(400, "Failed to upload the image. Please try again ");
   }
-
+  const imgJpg=ensureJpgExtension(img.url);
   const post = await Post.create({
     createdBy,
-    img: img.url,
+    img: imgJpg,
     tags,
   });
 
@@ -60,7 +61,8 @@ const getAllPost = wrapAsync(async (req, res) => {
   const posts = await Post
   .find({})
   .skip(Skip)
-  .limit(Limit);
+  .limit(Limit)
+  .populate('createdBy', 'avatar username clusters');
 
   if(!posts){
     throw new ApiError(404,"Posts not found ");
